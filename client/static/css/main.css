@@ -1,0 +1,9 @@
+ol.linenums {
+    margin: 0 0 0 55px; /* IE indents via margin-left */
+}
+ol.linenums li {
+    padding-left: 12px;
+    color: #bebec5;
+    line-height: 20px;
+    text-shadow: 0 1px 0 #fff;
+}

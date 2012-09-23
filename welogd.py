@@ -39,11 +39,15 @@ class LogServer(resource.Resource):
         logBot = self.irc_servers.get(server).get(channel)
         logBot.disconnect()
         return "{status:200}"
-            
 
 if __name__ == "__main__":
     log.startLogging(sys.stdout)
     site = server.Site(LogServer())
-    reactor.listenTCP(8080, site)
+
+    if len(sys.argv) < 2: port = 8080
+    else: port = int(sys.argv[1])
+
+    reactor.listenTCP(port, site)
+
     reactor.run()
 

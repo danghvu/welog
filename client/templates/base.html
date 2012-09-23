@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% include "head.html" %}
+    </head>
+    <body onload="prettyPrint()">
+        <center><h1>WE take care of your LOG</h1></center>
+            <ul class="nav nav-tabs">
+                <li id="irc" class="active"><a href="#">IRC logger</a></li>
+                <li id="todo"><a href="#">Todo</a></li>
+            </ul>
+        <div id="content">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </body>
+</html>

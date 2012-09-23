@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+
+     <div class="row-fluid" id="cmd_nav">
+        <div class="btn-group" data-toggle="buttons-radio">
+            <div class="btn" id="new">New Channel</div>
+            {% for channel in channel_list: %}
+            <div class="btn" id="chn_{{channel}}">{{channel}}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row-fluid" id="div_form_new_channel">
+    <form id="form_new_channel">
+        <legend>New Channel</legend>
+        <label>Name</label>
+        <input type="text" name="name" placeholder="Enter a name for your channel">
+        <label>Server</label>
+        <input type="text" name="server" placeholder="Server:Port">
+        <span class="help-inline">E.g: irc.freenode.net:6667</span><br/>
+        <label>Channel</label>
+        <input type="text" name="channel" placeholder="#channel">
+        <span class="help-inline">E.g: #vithon</span><br/>
+        <button type="submit" class="btn">Submit</button>
+    </form>
+    </div>
+
+    <div class="row-fluid">
+        <h3># Entries: <span id="count_entry">{{ logs|length }}</span></h3>
+        <pre class="prettyprint linenums" style="font-size:80%" id="logmain">{% for log in logs: %}{{log}}{% endfor %}</pre>
+    </div>
+</div>
+<script>
+$("#new").click( function() {
+    $("#div_form_new_channel").css("display:block");
+});
+$("#form_new_channel").submit( function() {
+    var name = $("input[name=name]").val();
+    var server = $("input[name=server]").val();
+    var channel = $("input[name=channel]").val();
+
+    alert("TODO: submit this form: " + name + " " + server + " " + channel);
+    return false;
+});
+</script>
+{% endblock %}
