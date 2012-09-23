@@ -20,7 +20,7 @@ class MessageLogger:
 
 class LogBot(irc.IRCClient):
 
-    nickname = "logbot"
+    nickname = "Worker__"
     
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
@@ -36,14 +36,18 @@ class LogBot(irc.IRCClient):
         self.join(self.factory.channel)
 
     def joined(self, channel):
-        pass
+        log.msg("Bot has joined channel %s" % channel)
 
     def privmsg(self, user, channel, msg):
         """Call when bot receive a message"""
         #TODO: save to database
+        user = user.split('!', 1)[0]
         log.msg("user %s - channel %s - msg %s" % (user, channel, msg))
 
-        
+        if channel == self.nickname:
+            #TODO: when user initiate private conversation with bot
+            log.msg("User %s on private channel" % user) 
+
 class LogBotFactory(protocol.ClientFactory):
 
     def __init__(self, channel):
@@ -52,17 +56,27 @@ class LogBotFactory(protocol.ClientFactory):
     def buildProtocol(self, addr):
         p = LogBot()
         p.factory = self
+        self.client = p
         return p
+
+    def disconnect(self):
+        self.client.quit()
 
     def clientConnectionLost(self, connector, reason):
         connector.connect()
 
     def clientConnectionFailed(self, connector, reason):
+        log.msg("[Connection Failed: %s" % reason)
         reactor.stop()
 
 def createBot(channel, irc_server, irc_port):
     f = LogBotFactory(channel)
-    #TODO: add SSL support
     reactor.connectTCP(irc_server, irc_port, f)
+    #TODO: add SSL support
     return f
+
+if __name__ == '__main__':
+    log.startLogging(sys.stdout)
+    f = createBot('abc', 'irc.freenode.net', 6667)
+    reactor.run()
     

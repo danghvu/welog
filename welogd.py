@@ -2,35 +2,47 @@
 from twisted.web import server, resource
 from twisted.words.protocols import irc
 from twisted.internet import reactor
+from twisted.python import log
 import bot
+import sys
 
 class LogServer(resource.Resource):
     isLeaf = True
-    server_list = {} 
+    irc_servers = {} 
 
     def render_POST(self, request):
-        channel = request.args.get("c") 
-        server = request.args.get("s")
+        channel = request.args.get("c")[0] 
+        server = request.args.get("s")[0]
+        port = request.args.get("p")
+        if not port:
+            port = 6667
+        else:
+            port = int(port[0])
         #check if same channel server bot already exist
-        if channel in self.server_list.get(server, {}):
-            print 'Channel is already listened'
+        log.msg("Request for Listening on server: %s:%s - channel: %s" % (server, port, channel))
+        if channel in self.irc_servers.get(server, {}):
+            log.msg('Channel is already listened')
             return "{status: 404}"
 
-        logBot = bot.createBot(channel, server, 6667)
-        self.server_list.set_default(server, {})[channel] = logBot
+        logBot = bot.createBot(channel, server, port)
+        self.irc_servers.setdefault(server, {})[channel] = logBot
         return "{status: 200}"
 
-    def render_GET(self, request):
-        """Testing"""
-        channel = "abc"
-        server = "irc.freenode.net"
-        logBot = bot.createBot(channel, server, 6667)
-        return "OK"
-
     def render_DELETE(self, request):
-        pass
+        """DELETE request to stop LogBot"""
+        channel = request.args.get("c")[0] 
+        server = request.args.get("s")[0]
+        #get LogBot
+        if not self.irc_servers.get(server, None) or not self.irc_servers.get(server).get(channel, None):
+            log.msg("No bot listening on server %s - channel %s" % (server, channel))
+            return "{status: 404}"
+        logBot = self.irc_servers.get(server).get(channel)
+        logBot.disconnect()
+        return "{status:200}"
+            
 
 if __name__ == "__main__":
+    log.startLogging(sys.stdout)
     site = server.Site(LogServer())
     reactor.listenTCP(8080, site)
     reactor.run()
