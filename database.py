@@ -9,8 +9,7 @@ class DB:
         self.cursor.execute("CREATE TABLE IF NOT EXISTS msg ( \
                              id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, \
                              user TEXT, \
-                             command TEXT, \
-                             target TEXT, \
+                             channel TEXT, \
                              message TEXT, \
                              time TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
 
@@ -19,12 +18,21 @@ class DB:
         self.cursor.close()
         self.conn.close()
 
-    def write(self):
-        #TODO
-        pass
+    def write(self, user, channel, message):
+        self.cursor.execute("INSERT INTO msg ( user, channel, message ) VALUES (?, ?, ?)", (user, channel, message))
+        self.conn.commit()
 
-    def read(self):
-        #TODO
-        pass
+    def read(self, channel=None):
+        if channel is None:
+            return self.cursor.execute("SELECT time,channel,user,message FROM msg ORDER BY time ASC").fetchall()
+        else:
+            return self.cursor.execute("SELECT time,user,message FROM msg WHERE channel=? ORDER BY time ASC", ("#"+channel,)).fetchall()
+
+    def listChannel(self):
+        return self.cursor.execute("SELECT DISTINCT channel FROM msg").fetchall()
 
 dbClient = DB(DBNAME)
+
+if __name__ == "__main__":
+    data = dbClient.read()
+    print data[0]

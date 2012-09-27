@@ -10,18 +10,20 @@ class MessageLogger:
     def __init__(self):
         self.storage = database.dbClient
 
-    def log(self, message):
-        """Save message to storage"""
-        pass
+    def log(self, user, channel, message):
+        try:
+            self.storage.write(user,channel,message)
+        except Exception as e:
+            raise RuntimeError("Can't write to the storage: " + str(e))
 
-    def close(self):
-        #self.storage.close()
+def close(self):
+    #self.storage.close()
         pass
 
 class LogBot(irc.IRCClient):
 
     nickname = "Worker__"
-    
+
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
         self.logger = MessageLogger()
@@ -40,9 +42,10 @@ class LogBot(irc.IRCClient):
 
     def privmsg(self, user, channel, msg):
         """Call when bot receive a message"""
-        #TODO: save to database
         user = user.split('!', 1)[0]
         log.msg("user %s - channel %s - msg %s" % (user, channel, msg))
+
+        self.logger.log( user, channel, msg )
 
         if channel == self.nickname:
             #TODO: when user initiate private conversation with bot
@@ -77,6 +80,6 @@ def createBot(channel, irc_server, irc_port):
 
 if __name__ == '__main__':
     log.startLogging(sys.stdout)
-    f = createBot('abc', 'irc.freenode.net', 6667)
+    f = createBot('#bkitsec', 'irc.freenode.net', 6667)
     reactor.run()
     

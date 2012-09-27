@@ -7,7 +7,7 @@
         <div class="btn-group" data-toggle="buttons-radio">
             <div class="btn" id="new">New Channel</div>
             {% for channel in channel_list: %}
-            <div class="btn" id="chn_{{channel}}">{{channel}}</div>
+            <div class="btn" id="chn_{{channel}}" onClick=loadc("{{channel}}")>{{channel}}</div>
             {% endfor %}
         </div>
     </div>
@@ -29,13 +29,15 @@
 
     <div class="row-fluid">
         <h3># Entries: <span id="count_entry">{{ logs|length }}</span></h3>
-        <pre class="prettyprint linenums" style="font-size:80%" id="logmain">{% for log in logs: %}{{log}}{% endfor %}</pre>
+        <pre class="prettyprint linenums" style="font-size:80%" id="logmain">{% for log in logs: %}
+{{log}}{% endfor %}</pre>
     </div>
 </div>
 <script>
 $("#new").click( function() {
-    $("#div_form_new_channel").css("display:block");
+    $("#form_new_channel").show();
 });
+
 $("#form_new_channel").submit( function() {
     var name = $("input[name=name]").val();
     var server = $("input[name=server]").val();
@@ -44,5 +46,15 @@ $("#form_new_channel").submit( function() {
     alert("TODO: submit this form: " + name + " " + server + " " + channel);
     return false;
 });
+
+function loadc(c) {
+    var c = c.substring(1,c.length);
+    $("#form_new_channel").hide();
+    $.getJSON("/"+c+"/ajax/",function(data) {
+        $("#logmain").html( data.join("\n") );
+        prettyPrint();
+    });
+}
+
 </script>
 {% endblock %}
