@@ -1,14 +1,15 @@
 from twisted.words.protocols import irc
 from twisted.internet import reactor, protocol
 from twisted.python import log
-import database
+from database import dbClient 
 
 import time, sys
+
 
 class MessageLogger:
 
     def __init__(self):
-        self.storage = database.dbClient
+        self.storage = dbClient 
 
     def log(self, user, channel, message):
         try:
@@ -34,7 +35,7 @@ class LogBot(irc.IRCClient):
         log.msg("[disconnected at %s]" % time.asctime(time.localtime(time.time())))
 
     def signedOn(self):
-        """Since the Protocol instance is recreated each time the connection is made, the client needs some way to keep track of data that should be persisted. It has reference to the factory that create it"""
+        #Since the Protocol instance is recreated each time the connection is made, the client needs some way to keep track of data that should be persisted. It has reference to the factory that create it
         self.join(self.factory.channel)
 
     def joined(self, channel):
@@ -72,14 +73,46 @@ class LogBotFactory(protocol.ClientFactory):
         log.msg("[Connection Failed: %s" % reason)
         reactor.stop()
 
-def createBot(channel, irc_server, irc_port):
+bots = {}
+
+def createBot(channel, irc_server="irc.freenode.net", irc_port=6667):
+    #prevent input of unicode channel name
+    channel = str(channel)
+
+    log.msg("Creating bot listening on channel %s" % channel)
     f = LogBotFactory(channel)
     reactor.connectTCP(irc_server, irc_port, f)
+    global bots
+    bots[channel] = f
     #TODO: add SSL support
-    return f
+
+def startLogWorker(channel):
+    print 'Create bot for channel %s ' % channel
+    #bot = createBot(channel) 
+    if channel not in bots:
+        reactor.callFromThread(createBot, channel)
+
+def stopLogWorker(channel):
+    global bots
+    if channel in bots:
+        bots[channel].disconnect()
+        del bots[channel]
+    
+from threading import Thread
+import sys
+
+botThread = None
+def startBotService(): 
+    botThread = Thread(target=reactor.run, args=(False,))
+    botThread.start()
+    reactor.callFromThread(log.startLogging, sys.stdout)
+#def stopBot(channel):
+
+def stopBotService():
+    botThread.stop() 
 
 if __name__ == '__main__':
     log.startLogging(sys.stdout)
-    f = createBot('#bkitsec', 'irc.freenode.net', 6667)
+    f = createBot('#vithon')
     reactor.run()
     

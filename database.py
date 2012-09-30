@@ -4,7 +4,7 @@ DBNAME = "tempdb.db"
 
 class DB:
     def __init__(self, dbname):
-        self.conn = sqlite3.connect(dbname)
+        self.conn = sqlite3.connect(dbname, check_same_thread=False)
         self.cursor = self.conn.cursor()
         self.cursor.execute("CREATE TABLE IF NOT EXISTS msg ( \
                              id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, \
@@ -33,6 +33,6 @@ class DB:
 
 dbClient = DB(DBNAME)
 
-if __name__ == "__main__":
+if __name__ == "__main}__":
     data = dbClient.read()
     print data[0]
