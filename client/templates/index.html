@@ -8,16 +8,16 @@
             <div class="btn" id="new">New Channel</div>
             {% for channel in channel_list: %}
             {% if channel in active_list %}
-            <div class="btn activechannel" id="chn_{{channel}}" onClick=loadc("{{channel}}")>{{channel}}</div>
+            <div class="btn activechannel" id="chn_{{channel|replace("#","")}}" onClick=loadc("{{channel|replace("#","")}}")>{{channel}}</div>
             {% else %}
-            <div class="btn inactivechannel" id="chn_{{channel}}" onClick=loadc("{{channel}}")>{{channel}}</div>
+            <div class="btn inactivechannel" id="chn_{{channel|replace("#","")}}" onClick=loadc("{{channel|replace("#","")}}")>{{channel}}</div>
             {% endif %}
             {% endfor %}
         </div>
     </div>
 
-    <div class="row-fluid" id="div_form_new_channel">
-    <form id="form_new_channel">
+    <div class="row-fluid" id="div_form_new_chann">
+    <form id="form_new_chann">
         <legend>New Channel</legend>
         <label>Name</label>
         <input type="text" name="name" placeholder="Enter a name for your channel">
@@ -47,8 +47,8 @@
 $("#new").click( function() {
     $("#form_new_chann").show();
 });
-")
-$("#form_new_channel").submit( function() {
+
+$("#form_new_chann").submit( function() {
     var name = $("input[name=name]").val();
     var server = $("input[name=server]").val();
     var channel = $("input[name=channel]").val();
@@ -57,7 +57,7 @@ $("#form_new_channel").submit( function() {
     console.log(url);
     $.post(url, function(data) {
         console.log(data);
-        $("#channels-group").append("<div class='btn activechannel' id='chn_" + channel + "' onClick=loadc('" + channel + "')>channel</div>)
+        $("#channels-group").append("<div class='btn activechannel' id='chn_" + channel_name + "' onClick=loadc('" + channel_name + "')>"+channel+"</div>")
     });
     return false;
 });
@@ -80,14 +80,15 @@ $("#start").click(function() {
         console.log(data);
     });
 });
+
 function loadc(c) {
     //get status of the channel
     var logging = true; 
-    if ($("#chn_" + c).attr("class").contains("inactivechannel")) {
+    if ($("#chn_" + c).attr("class").indexOf("inactivechannel")) {
         logging = false;
     } 
-    var c = c.substring(1,c.length);
-    $("#form_new_channel").hide();
+
+    $("#form_new_chann").hide();
     $.getJSON("/"+c+"/ajax/",function(data) {
     	$("#count_entry").text(data.length);
         $("#logmain").html( data.join("\n") );

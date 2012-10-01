@@ -26,7 +26,7 @@ class DB:
         if channel is None:
             return self.cursor.execute("SELECT time,channel,user,message FROM msg ORDER BY time ASC").fetchall()
         else:
-            return self.cursor.execute("SELECT time,user,message FROM msg WHERE channel=? ORDER BY time ASC", ("#"+channel,)).fetchall()
+            return self.cursor.execute("SELECT time,channel,user,message FROM msg WHERE channel=? ORDER BY time ASC", ("#"+channel,)).fetchall()
 
     def listChannel(self):
         return self.cursor.execute("SELECT DISTINCT channel FROM msg").fetchall()

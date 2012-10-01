@@ -24,7 +24,8 @@ def nicePrint(log_content):
     for line in log_content:
         time = line[0]
         channel = line[1]
-        dblogs += ["[%s] [%s]: %s" % (time, channel, ''.join(line[2:])) ]
+        user = line[2]
+        dblogs += ["[%s] [%s] %s: %s" % (time, channel, user, ''.join(line[3:])) ]
     return dblogs
 
 def getActiveChannels(channels):
@@ -52,7 +53,6 @@ def index(name=None):
 @app.route('/<name>/ajax/')
 def channel_ajax(name):
     from database import dbClient
-
     dblogs = nicePrint( dbClient.read(channel=name) )
     return json.dumps( dblogs )
     
@@ -77,6 +77,6 @@ if __name__ == '__main__':
         startBotService()
         app.run(debug=True,host="0.0.0.0")
     except (KeyboardInterrupt, SystemExit):
-        #stop stop bot service
+        #stop bot service
         stopBotService()
         sys.exit()

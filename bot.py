@@ -107,17 +107,17 @@ import sys
 
 botThread = None
 def startBotService(): 
-    botThread = Thread(target=reactor.run, args=(False,))
-    botThread.start()
     reactor.callFromThread(log.startLogging, sys.stdout)
-#def stopBot(channel):
+    botThread = Thread(target=reactor.run, args=(False,))
+    botThread.daemon = True
+    botThread.start()
 
+#def stopBot(channel):
 def stopBotService():
     botThread.stop() 
     botThread.join()
-
+   
 if __name__ == '__main__':
     log.startLogging(sys.stdout)
     f = createBot('#vithon')
     reactor.run()
-    
