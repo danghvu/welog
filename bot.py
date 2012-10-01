@@ -87,7 +87,6 @@ def createBot(channel, irc_server="irc.freenode.net", irc_port=6667):
     #TODO: add SSL support
 
 def startLogWorker(channel):
-    print 'Create bot for channel %s ' % channel
     #bot = createBot(channel) 
     if channel not in bots:
         reactor.callFromThread(createBot, channel)
@@ -97,6 +96,11 @@ def stopLogWorker(channel):
     if channel in bots:
         bots[channel].disconnect()
         del bots[channel]
+
+def isChannelListened(channel):
+    if channel in bots:
+        return True
+    return False
     
 from threading import Thread
 import sys
@@ -110,6 +114,7 @@ def startBotService():
 
 def stopBotService():
     botThread.stop() 
+    botThread.join()
 
 if __name__ == '__main__':
     log.startLogging(sys.stdout)

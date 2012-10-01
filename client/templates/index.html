@@ -4,10 +4,14 @@
 <div class="container-fluid">
 
      <div class="row-fluid" id="cmd_nav">
-        <div class="btn-group" data-toggle="buttons-radio">
+        <div class="btn-group"id="channels-group" data-toggle="buttons-radio">
             <div class="btn" id="new">New Channel</div>
             {% for channel in channel_list: %}
+            {% if channel in active_list %}
+            <div class="btn activechannel" id="chn_{{channel}}" onClick=loadc("{{channel}}")>{{channel}}</div>
+            {% else %}
             <div class="btn inactivechannel" id="chn_{{channel}}" onClick=loadc("{{channel}}")>{{channel}}</div>
+            {% endif %}
             {% endfor %}
         </div>
     </div>
@@ -26,9 +30,9 @@
         <button type="submit" class="btn">Submit</button>
     </form>
     </div>
-    <div class="row-fluid" id="channel_control">
-        <div class="hidden" id="status"></div>
-        <div class="hidden" id="viewed_channel"></div>
+    <div class="row-fluid" id="channel_control" style="display: none;">
+        <div id="status"></div>
+        <div id="viewed_channel" class="hidden"></div>
         <div class="btn" id="stop">Stop Logger</div>
         <div class="btn" id="start">Start Logger</div>
     </div>
@@ -43,16 +47,17 @@
 $("#new").click( function() {
     $("#form_new_chann").show();
 });
-
+")
 $("#form_new_channel").submit( function() {
     var name = $("input[name=name]").val();
     var server = $("input[name=server]").val();
     var channel = $("input[name=channel]").val();
-    channel = channel.substring(1, channel.length);
-    url = "/" + channel + "/ajax/"
+    channel_name = channel.substring(1, channel.length);
+    url = "/" + channel_name + "/ajax/"
     console.log(url);
     $.post(url, function(data) {
         console.log(data);
+        $("#channels-group").append("<div class='btn activechannel' id='chn_" + channel + "' onClick=loadc('" + channel + "')>channel</div>)
     });
     return false;
 });
@@ -69,7 +74,11 @@ $("#stop").click(function() {
 });
 
 $("#start").click(function() {
-    //TODO:
+    var channel = $("#viewed_channel").val();
+    url = "/" + channel + "/ajax/";
+    $.post(url, function(data) {
+        console.log(data);
+    });
 });
 function loadc(c) {
     //get status of the channel

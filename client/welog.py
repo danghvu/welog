@@ -27,6 +27,14 @@ def nicePrint(log_content):
         dblogs += ["[%s] [%s]: %s" % (time, channel, ''.join(line[2:])) ]
     return dblogs
 
+def getActiveChannels(channels):
+    from bot import isChannelListened 
+    active = []
+    for c in channels:
+        if isChannelListened(c):
+            active.append(c)
+    return active
+
 @app.route('/')
 @app.route('/<name>/')
 def index(name=None):
@@ -37,8 +45,7 @@ def index(name=None):
 
     channels = [x[0] for x in dbClient.listChannel()]
 
-    #from welogd import bots
-    active_channels = []
+    active_channels = getActiveChannels(channels) 
     
     return render_template("index.html", logs = dblogs, channel_list=channels, active_list=active_channels)
 
