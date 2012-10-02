@@ -12,10 +12,9 @@ ol.linenums li {
     display: none; 
 }
 
-.activechannel {
-
+.activechannel,.activechannel *{
+    color:red !important;
 }
 
 .inactivechannel {
-
 }

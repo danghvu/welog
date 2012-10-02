@@ -5,31 +5,33 @@
 
      <div class="row-fluid" id="cmd_nav">
         <div class="btn-group"id="channels-group" data-toggle="buttons-radio">
-            <div class="btn" id="new">New Channel</div>
+            <div class="btn" id="new">New</div>
+            <div class="btn active" id="all">All</div>
             {% for channel in channel_list: %}
             {% if channel in active_list %}
-            <div class="btn activechannel" id="chn_{{channel|replace("#","")}}" onClick=loadc("{{channel|replace("#","")}}")>{{channel}}</div>
+            <div class="btn activechannel" id="chn_{{loop.index}}" onClick='loadc({{channel|tojson|safe}})'>{{channel}}</div>
             {% else %}
-            <div class="btn inactivechannel" id="chn_{{channel|replace("#","")}}" onClick=loadc("{{channel|replace("#","")}}")>{{channel}}</div>
+            <div class="btn inactivechannel" id="chn_{{loop.index}}" onClick='loadc({{channel|tojson|safe}})'>{{channel}}</div>
             {% endif %}
             {% endfor %}
         </div>
     </div>
 
     <div class="row-fluid" id="div_form_new_chann">
-    <form id="form_new_chann">
-        <legend>New Channel</legend>
-        <label>Name</label>
-        <input type="text" name="name" placeholder="Enter a name for your channel">
-        <label>Server</label>
-        <input type="text" name="server" placeholder="Server:Port">
-        <span class="help-inline">E.g: irc.freenode.net:6667</span><br/>
-        <label>Channel</label>
-        <input type="text" name="channel" placeholder="#channel">
-        <span class="help-inline">E.g: #vithon</span><br/>
-        <button type="submit" class="btn">Submit</button>
-    </form>
+        <form id="form_new_chann" class="hidden">
+            <legend>Enter a channel</legend>
+            <!-- <label>Name</label>
+            <input type="text" name="name" placeholder="Enter a name for your channel">
+            <label>Server</label>
+            <input type="text" name="server" placeholder="Server:Port">
+            <span class="help-inline">E.g: irc.freenode.net:6667</span><br/>
+            --> 
+            <input type="text" name="channel" placeholder="#channel">
+            <span class="help-inline">#vithon</span><br/>
+            <button type="submit" class="btn">Submit</button>
+        </form>
     </div>
+
     <div class="row-fluid" id="channel_control" style="display: none;">
         <div id="status"></div>
         <div id="viewed_channel" class="hidden"></div>
@@ -38,27 +40,49 @@
     </div>
 
     <div class="row-fluid">
-        <h3># Entries: <span id="count_entry">{{ logs|length }}</span></h3>
+        <h4># Entries: <span id="count_entry">{{ logs|length }}</span></h4>
         <pre class="prettyprint linenums" style="font-size:80%" id="logmain">{% for log in logs: %}
 {{log}}{% endfor %}</pre>
     </div>
+
 </div>
+
 <script>
+var count_chann = {{channel_list|length}};
+var list_chann = {{channel_list|tojson|safe}};
+
 $("#new").click( function() {
     $("#form_new_chann").show();
 });
 
+$("#all").click( function() {
+    $("#form_new_chann").hide();
+    $.getJSON("/ajax/",function(data) {
+    	$("#count_entry").text(data.length);
+        $("#logmain").html( data.join("\n") );
+        prettyPrint();
+    });
+});
+
 $("#form_new_chann").submit( function() {
-    var name = $("input[name=name]").val();
-    var server = $("input[name=server]").val();
+    //var name = $("input[name=name]").val();
+    //var server = $("input[name=server]").val();
     var channel = $("input[name=channel]").val();
-    channel_name = channel.substring(1, channel.length);
-    url = "/" + channel_name + "/ajax/"
+    url = "/" + encodeURIComponent(channel) + "/ajax/"
     console.log(url);
     $.post(url, function(data) {
-        console.log(data);
-        $("#channels-group").append("<div class='btn activechannel' id='chn_" + channel_name + "' onClick=loadc('" + channel_name + "')>"+channel+"</div>")
-    });
+        if (data.message == "failed") {
+            alert("Operation failed, please check channel name");
+            return;
+        }
+        var index = list_chann.indexOf(channel) + 1;
+        if (!index){ 
+            $("#channels-group").append("<div class='btn activechannel' id='chn_"+(count_chann++)+"' onClick=loadc('"+channel+"')>"+channel+"</div>")
+            list_chann.push(channel);
+        } else {
+            $("#chn_"+index).addClass("activechannel");
+        }
+    },"json");
     return false;
 });
 
@@ -66,7 +90,7 @@ $("#stop").click(function() {
     var channel = $("#viewed_channel").val()
     $.ajax({
         type: "DELETE",
-        url: "/" + channel + "/ajax"
+        url: "/" + encodeURIComponent(channel) + "/ajax"
     }).done(function(data) {
         console.log(data);
     });
@@ -75,7 +99,7 @@ $("#stop").click(function() {
 
 $("#start").click(function() {
     var channel = $("#viewed_channel").val();
-    url = "/" + channel + "/ajax/";
+    url = "/" + encodeURIComponent(channel) + "/ajax/";
     $.post(url, function(data) {
         console.log(data);
     });
@@ -83,13 +107,13 @@ $("#start").click(function() {
 
 function loadc(c) {
     //get status of the channel
-    var logging = true; 
-    if ($("#chn_" + c).attr("class").indexOf("inactivechannel")) {
-        logging = false;
-    } 
-
+    //var logging = true; 
+    //if ($("#chn_" + c).attr("class").indexOf("inactivechannel")) {
+    //    logging = false;
+    //} 
     $("#form_new_chann").hide();
-    $.getJSON("/"+c+"/ajax/",function(data) {
+    url = "/" + encodeURIComponent(c) + "/ajax/";
+    $.getJSON(url,function(data) {
     	$("#count_entry").text(data.length);
         $("#logmain").html( data.join("\n") );
         prettyPrint();

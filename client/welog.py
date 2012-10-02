@@ -7,6 +7,8 @@ from twisted.python import log
 
 app = Flask(__name__)
 
+app.jinja_env.filters['tojson'] = json.dumps
+
 html_escape_table = {
         "&": "&amp;",
         '"': "&quot;",
@@ -14,7 +16,6 @@ html_escape_table = {
         ">": "&gt;",
         "<": "&lt;",
         }
-
 
 def html_escape(text):
     return "".join(html_escape_table.get(c,c) for c in text)
@@ -39,16 +40,19 @@ def getActiveChannels(channels):
 @app.route('/')
 @app.route('/<name>/')
 def index(name=None):
-
     from database import dbClient
 
     dblogs = nicePrint( dbClient.read(channel=name) )
-
     channels = [x[0] for x in dbClient.listChannel()]
-
     active_channels = getActiveChannels(channels) 
     
     return render_template("index.html", logs = dblogs, channel_list=channels, active_list=active_channels)
+
+@app.route('/ajax/')
+def all_chann():
+    from database import dbClient
+    dblogs = nicePrint( dbClient.read() )
+    return json.dumps( dblogs )
 
 @app.route('/<name>/ajax/')
 def channel_ajax(name):
@@ -58,16 +62,16 @@ def channel_ajax(name):
     
 @app.route('/<name>/ajax/', methods=["POST"])
 def channel_ajax_create(name):
-    print 'ABC XYZ'
     from bot import startLogWorker
     app.logger.info("Call for start logging")
-    startLogWorker(name) 
-    return "{message: 'created'}"
+    if startLogWorker(name):
+        return '{"message":"created"}'
+    else:
+        return '{"message":"failed"}'
     
 @app.route('/<name>/ajax/', methods=["DELETE"])
 def channel_ajax_delete(name):
     from bot import stopLogWorker
-
     stopLogWorker(name)
     return "{message: 'done'}"
 

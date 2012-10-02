@@ -1,9 +1,10 @@
 from twisted.words.protocols import irc
-from twisted.internet import reactor, protocol
+from twisted.internet import reactor, protocol, threads
 from twisted.python import log
 from database import dbClient 
 
 import time, sys
+import re
 
 
 class MessageLogger:
@@ -23,6 +24,7 @@ def close(self):
 
 class LogBot(irc.IRCClient):
 
+    #TODO: how should nickname change when listening on multiple channel ? at the moment Worker__, Worker___, Worker____ ..
     nickname = "Worker__"
 
     def connectionMade(self):
@@ -35,7 +37,6 @@ class LogBot(irc.IRCClient):
         log.msg("[disconnected at %s]" % time.asctime(time.localtime(time.time())))
 
     def signedOn(self):
-        #Since the Protocol instance is recreated each time the connection is made, the client needs some way to keep track of data that should be persisted. It has reference to the factory that create it
         self.join(self.factory.channel)
 
     def joined(self, channel):
@@ -78,18 +79,22 @@ bots = {}
 def createBot(channel, irc_server="irc.freenode.net", irc_port=6667):
     #prevent input of unicode channel name
     channel = str(channel)
+    #match RFC 1459
+    if (re.match("[#&][^\x07\x2C\s]{,200}",channel) is None):
+        return False
 
+    # TODO: should we reuse the old connection ? if it's in the same server ? 
     log.msg("Creating bot listening on channel %s" % channel)
     f = LogBotFactory(channel)
     reactor.connectTCP(irc_server, irc_port, f)
     global bots
     bots[channel] = f
+    return True
     #TODO: add SSL support
 
 def startLogWorker(channel):
-    #bot = createBot(channel) 
     if channel not in bots:
-        reactor.callFromThread(createBot, channel)
+        return threads.blockingCallFromThread(reactor, createBot, channel)
 
 def stopLogWorker(channel):
     global bots
