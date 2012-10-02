@@ -84,14 +84,7 @@ def createBot(channel, irc_server="irc.freenode.net", irc_port=6667):
     if (re.match("[#&][^\x07\x2C\s]{,200}",channel) is None):
         return False
 
-    # TODO: should we reuse the old connection ? if it's in the same server ? 
     log.msg("Creating bot listening on channel %s" % channel)
-    #f = LogBotFactory(channel)
-    #reactor.connectTCP(irc_server, irc_port, f)
-    #global bots
-    #bots[channel] = f
-
-    global abots, bots
 
     if channel in bots: return False
 
