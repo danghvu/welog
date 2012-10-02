@@ -75,6 +75,7 @@ class LogBotFactory(protocol.ClientFactory):
         reactor.stop()
 
 bots = {}
+bot_load = {}
 
 def createBot(channel, irc_server="irc.freenode.net", irc_port=6667):
     #prevent input of unicode channel name
@@ -85,10 +86,31 @@ def createBot(channel, irc_server="irc.freenode.net", irc_port=6667):
 
     # TODO: should we reuse the old connection ? if it's in the same server ? 
     log.msg("Creating bot listening on channel %s" % channel)
-    f = LogBotFactory(channel)
-    reactor.connectTCP(irc_server, irc_port, f)
-    global bots
-    bots[channel] = f
+    #f = LogBotFactory(channel)
+    #reactor.connectTCP(irc_server, irc_port, f)
+    #global bots
+    #bots[channel] = f
+
+    global abots, bots
+
+    if channel in bots: return False
+
+    reuse = None
+    for bot in bot_load.iterkeys():
+        if bot_load[bot] < 2: #TODO: move "2" as settings MAX_CHANNEL_PER_BOT
+            reuse = bot
+            bot_load[bot]+=1
+
+    if (reuse is None):
+        f = LogBotFactory(channel)
+        reactor.connectTCP(irc_server, irc_port, f)
+        reuse = f
+        bot_load[reuse] = 1
+    else:
+        reuse.client.join(channel)
+    
+    bots[channel] = reuse
+
     return True
     #TODO: add SSL support
 
