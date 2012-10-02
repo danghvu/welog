@@ -5,6 +5,7 @@ DBNAME = "tempdb.db"
 class DB:
     def __init__(self, dbname):
         self.conn = sqlite3.connect(dbname, check_same_thread=False)
+
         self.cursor = self.conn.cursor()
         self.cursor.execute("CREATE TABLE IF NOT EXISTS msg ( \
                              id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, \
@@ -19,6 +20,7 @@ class DB:
         self.conn.close()
 
     def write(self, user, channel, message):
+        message = unicode(message,'utf-8')
         self.cursor.execute("INSERT INTO msg ( user, channel, message ) VALUES (?, ?, ?)", (user, channel, message))
         self.conn.commit()
 
